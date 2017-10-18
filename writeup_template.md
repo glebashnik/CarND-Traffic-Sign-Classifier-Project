@@ -1,25 +1,20 @@
-#**Traffic Sign Recognition** 
-
-##Writeup Template
-
-###You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
+# Traffic Sign Recognition
 ---
+## Overview
 
-**Build a Traffic Sign Recognition Project**
+**Goal**: Build and evaluate a traffic sign recognition model.
 
-The goals / steps of this project are the following:
-* Load the data set (see below for links to the project data set)
+The project consists of the following parts:
+* Load the data set
 * Explore, summarize and visualize the data set
 * Design, train and test a model architecture
 * Use the model to make predictions on new images
 * Analyze the softmax probabilities of the new images
 * Summarize the results with a written report
 
-
 [//]: # (Image References)
 
-[image1]: ./examples/visualization.jpg "Visualization"
+[dataset]: ./dataset.png "Visualization"
 [image2]: ./examples/grayscale.jpg "Grayscaling"
 [image3]: ./examples/random_noise.jpg "Random Noise"
 [image4]: ./examples/placeholder.png "Traffic Sign 1"
@@ -28,74 +23,66 @@ The goals / steps of this project are the following:
 [image7]: ./examples/placeholder.png "Traffic Sign 4"
 [image8]: ./examples/placeholder.png "Traffic Sign 5"
 
-## Rubric Points
-###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/481/view) individually and describe how I addressed each point in my implementation.  
 
----
-###Writeup / README
+## Dataset Exploration
+### Data Summary
+I used *numpy* to generate a basic summary of the dataset: 
+* Number of training examples = 34799
+* Number of testing examples = 12630
+* Image data shape = (32, 32)
+* Number of classes = 43
 
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one. You can submit your writeup as markdown or pdf. You can use this template as a guide for writing the report. The submission includes the project code.
+### Exploratory Visualization
+For visualization, I used *matplotlib* to generate a bar chart that shows a distribution of images in each class for training, validation and test sets. It is combined with visualization of a random images form each class and their labels.
 
-You're reading it! and here is a link to my [project code](https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb)
+![alt text][dataset]
 
-###Data Set Summary & Exploration
+## Design and Test a Model Architecture
 
-####1. Provide a basic summary of the data set. In the code, the analysis should be done using python, numpy and/or pandas methods rather than hardcoding results manually.
+### Preprocessing
 
-I used the pandas library to calculate summary statistics of the traffic
-signs data set:
+I did normalizaiton of the data to scale color values between -1 and 1. 
 
-* The size of training set is ?
-* The size of the validation set is ?
-* The size of test set is ?
-* The shape of a traffic sign image is ?
-* The number of unique classes/labels in the data set is ?
+After reading a relevant [research paper](http://yann.lecun.com/exdb/publis/pdf/sermanet-ijcnn-11.pdf), where better performance is achieved on the grayscaled images, I also tried converting images to grayscal. However, there were no significant differences in the validation accuracy, so I remved greyscaling from the proecprocessing. Besides it makes sense that color might help to distinguish between signs, especially blue and red ones.
 
-####2. Include an exploratory visualization of the dataset.
+What I could have tried is to convert images form RGB to HSV color space, where color similarities are captured more explicitly. Augumenting the dataset could also help. Noise to similuate image artifacts form camera, rotation and translation, partially covered signs to deal with partially broken, cover
 
-Here is an exploratory visualization of the data set. It is a bar chart showing how the data ...
-
-![alt text][image1]
-
-###Design and Test a Model Architecture
-
-####1. Describe how you preprocessed the image data. What techniques were chosen and why did you choose these techniques? Consider including images showing the output of each preprocessing technique. Pre-processing refers to techniques such as converting to grayscale, normalization, etc. (OPTIONAL: As described in the "Stand Out Suggestions" part of the rubric, if you generated additional data for training, describe why you decided to generate additional data, how you generated the data, and provide example images of the additional data. Then describe the characteristics of the augmented training set like number of images in the set, number of images for each class, etc.)
-
-As a first step, I decided to convert the images to grayscale because ...
-
-Here is an example of a traffic sign image before and after grayscaling.
-
-![alt text][image2]
-
-As a last step, I normalized the image data because ...
-
-I decided to generate additional data because ... 
-
-To add more data to the the data set, I used the following techniques because ... 
-
-Here is an example of an original image and an augmented image:
-
-![alt text][image3]
-
-The difference between the original data set and the augmented data set is the following ... 
-
-
-####2. Describe what your final model architecture looks like including model type, layers, layer sizes, connectivity, etc.) Consider including a diagram and/or table describing the final model.
+### Model Architecture
 
 My final model consisted of the following layers:
 
-| Layer         		|     Description	        					| 
-|:---------------------:|:---------------------------------------------:| 
-| Input         		| 32x32x3 RGB image   							| 
-| Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
-| RELU					|												|
-| Max pooling	      	| 2x2 stride,  outputs 16x16x64 				|
-| Convolution 3x3	    | etc.      									|
-| Fully connected		| etc.        									|
-| Softmax				| etc.        									|
-|						|												|
-|						|												|
- 
+| Layer         	| Description	        					            | 
+|:-----------------:|:-----------------------------------------------------:| 
+| Input         	| 32x32x3 RGB image   							        | 
+| Convolution       | 5x5 size, 1x1 stride, valid padding, outputs 28x28x32 |
+| RELU			    |												        |
+| Max pooling	    | 2x2 stride, outputs 14x14x32 				            |
+| Convolution       | 5x5 size, 1x1 stride, valid padding, outputs 10x10x64 |
+| RELU			    |												        |
+| Max pooling	    | 2x2 stride, outputs 5x5x64 	                        |
+| Fully connected	| 256 size        									    |
+| RELU				|        									            |
+| Dropout			| 0.4 keep probability for training						|
+| Fully connected	| 128 size        									    |
+| RELU				|        									            |
+| Dropout			| 0.4 keep probability for training						|
+| Output        	| 43 size  												|
+
+
+### Model Training
+
+I used Adam optimizer, which is pretty standart for this type of classificaiton tasks. During training, hyper-parameters were set to:
+
+* numer of epochs = 20
+* batch size = 128
+* rate = 0.001
+* keep probability for training = 0.4
+
+### Solution Approach
+Dropout was added after observing a relatively large difference between a training and a validation error, indicating overfitting.
+
+I also experimented with other architectures, adding and removing layers as well as having a skip-layer connection, where the output of the first and second convolution layers are combined and sent as the input to the first fully connected layer. At the end, none of these modifications changed validation accuracy in any significant way so I removed them.
+
 
 
 ####3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
