@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+        <link rel="stylesheet" type="text/css" href="file:///home/gleb/.vscode/extensions/yzhang.markdown-all-in-one-0.11.0/media/markdown.css">
+        <link rel="stylesheet" type="text/css" href="file:///home/gleb/.vscode/extensions/yzhang.markdown-all-in-one-0.11.0/media/tomorrow.css">
+        <link rel="stylesheet" type="text/css" href="file:///home/gleb/.vscode/extensions/yzhang.markdown-all-in-one-0.11.0/media/checkbox.css">
+        
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'HelveticaNeue-Light', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 id="traffic-sign-recognition">Traffic Sign Recognition</h1>
+<hr>
+<h2 id="overview">Overview</h2>
+<p><strong>Goal</strong>: Build and evaluate a traffic sign recognition model.</p>
+<p>The project consists of the following parts:</p>
+<ul>
+<li>Load the data set</li>
+<li>Explore, summarize and visualize the data set</li>
+<li>Design, train and test a model architecture</li>
+<li>Use the model to make predictions on new images</li>
+<li>Analyze the softmax probabilities of the new images</li>
+<li>Summarize the results with a written report</li>
+</ul>
+<h2 id="dataset-exploration">Dataset exploration</h2>
+<h3 id="data-summary">Data summary</h3>
+<p>I used <em>numpy</em> to generate a basic summary of the dataset:</p>
+<ul>
+<li>Number of training examples = 34799</li>
+<li>Number of testing examples = 12630</li>
+<li>Image data shape = (32, 32)</li>
+<li>Number of classes = 43</li>
+</ul>
+<h3 id="exploratory-visualization">Exploratory Visualization</h3>
+<p>For visualization, I used <em>matplotlib</em> to generate a bar chart that shows a distribution of images in each class for training, validation and test sets. It is combined with visualization of a random images form each class and their labels.</p>
+<p><img src="file:///home/gleb/Code/CarND/CarND-Traffic-Sign-Classifier-Project/dataset.png" alt="alt text" title="Visualization"></p>
+<h2 id="design-and-test-a-model-architecture">Design and Test a Model Architecture</h2>
+<h3 id="preprocessing">Preprocessing</h3>
+<p>I did normalizaiton of the data to scale color values between -1 and 1.</p>
+<p>After reading a relevant <a href="http://yann.lecun.com/exdb/publis/pdf/sermanet-ijcnn-11.pdf">research paper</a>, where better performance is achieved on the grayscaled images, I also tried converting images to grayscal. However, there were no significant differences in the validation accuracy, so I remved greyscaling from the proecprocessing. Besides it makes sense that color might help to distinguish between signs, especially blue and red ones.</p>
+<p>A possible improvement would be to convert images form RGB to HSV color space, where color similarities are captured more explicitly. Augumenting the dataset could also help. Noise to similuate image artifacts form the camer; rotation and translation to deal with broken or partially covered signs.</p>
+<p>Another idea would be to apply 3d transformations, by projecting the image on 3d cube and rotating it along different axis. This would help to deal with images taken form different angles.</p>
+<h3 id="model-architecture">Model Architecture</h3>
+<p>My final model consisted of the following layers:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Layer</th>
+<th style="text-align:center">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Input</td>
+<td style="text-align:center">32x32x3 RGB image</td>
+</tr>
+<tr>
+<td style="text-align:center">Convolution</td>
+<td style="text-align:center">5x5 size, 1x1 stride, valid padding, outputs 28x28x32</td>
+</tr>
+<tr>
+<td style="text-align:center">RELU</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">Max pooling</td>
+<td style="text-align:center">2x2 stride, outputs 14x14x32</td>
+</tr>
+<tr>
+<td style="text-align:center">Convolution</td>
+<td style="text-align:center">5x5 size, 1x1 stride, valid padding, outputs 10x10x64</td>
+</tr>
+<tr>
+<td style="text-align:center">RELU</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">Max pooling</td>
+<td style="text-align:center">2x2 stride, outputs 5x5x64</td>
+</tr>
+<tr>
+<td style="text-align:center">Fully connected</td>
+<td style="text-align:center">256 size</td>
+</tr>
+<tr>
+<td style="text-align:center">RELU</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">Dropout</td>
+<td style="text-align:center">0.4 keep probability for training</td>
+</tr>
+<tr>
+<td style="text-align:center">Fully connected</td>
+<td style="text-align:center">128 size</td>
+</tr>
+<tr>
+<td style="text-align:center">RELU</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">Dropout</td>
+<td style="text-align:center">0.4 keep probability for training</td>
+</tr>
+<tr>
+<td style="text-align:center">Output</td>
+<td style="text-align:center">43 size</td>
+</tr>
+</tbody>
+</table>
+<h3 id="model-training">Model Training</h3>
+<p>I used Adam optimizer, which is considered to be one of the best optimizers avaliable. During training, hyper-parameters were set to the following values.</p>
+<ul>
+<li>numer of epochs = 20</li>
+<li>batch size = 128</li>
+<li>rate = 0.001</li>
+<li>keep probability for training = 0.4</li>
+</ul>
+<h3 id="solution-approach">Solution Approach</h3>
+<p>I started with the model and hyper-parameters from the <a href="https://github.com/udacity/CarND-LeNet-Lab/blob/master/LeNet-Lab-Solution.ipynb">MNIST classificaiton with LeNet</a></p>
+<p>Sign classification is a more complex task than classification of numbers in MNIST. The number of classes is increased from 10 to 43 and the images are captured in a wider variety of conditions. Therefore the first modificaiton I made is increased the number of feature maps in convolution layers and the size of fully connected layers.</p>
+<p>For each epoch, I printed training and validation accuracy, noticing that training accuracy is close to 100% while valiadation accuracy is lagging behind, which might indicate overfitting. To make the mode more robuse, I added dropout after each fully connected layer. This decreased the gap between training and validation accuracy, achieving validation accuracy close to 97%.</p>
+<p>After reading the research paper by <a href="http://yann.lecun.com/exdb/publis/pdf/sermanet-ijcnn-11.pdf">Sermanet and LeCun 2011</a> that deals with the same task, I experimented with skip-layer connections. In this model, the output of the first and second convolution layers are combined as the input to the first fully connected layer. This change didn't effect my validation accuracy in a significant way so I rolled back to the previous model.</p>
+<p>I did several iterations of trying out different values for hyper-parameters, decreasing the learning rate and increasing the number of epochs, increasing and decreasing the batch sizes. None of these tweaks yeilded improvements in the validation accuracy, except reducing the keep probability for the dropout to 0.4, which makes the model more robust.</p>
+<p><strong>The final test accuracy achieved is 95.8%.</strong></p>
+<h2 id="test-a-model-on-new-images">Test a model on new images</h2>
+<h3 id="acquiring-new-images">Acquiring New images</h3>
+<p>To acquire new traffic sign images I used Google Street View, taking screenshots of traffic signs in Berlin. Here are the five images I got:</p>
+<p><img src="file:///home/gleb/Code/CarND/CarND-Traffic-Sign-Classifier-Project/images/3.png" alt="sign1" title="Traffic sign 1"> <img src="file:///home/gleb/Code/CarND/CarND-Traffic-Sign-Classifier-Project/images/11.png" alt="sign2" title="Traffic sign 2"> <img src="file:///home/gleb/Code/CarND/CarND-Traffic-Sign-Classifier-Project/images/13.png" alt="sign3" title="Traffic sign 3"> <img src="file:///home/gleb/Code/CarND/CarND-Traffic-Sign-Classifier-Project/images/17.png" alt="sign4" title="Traffic sign 4"> <img src="file:///home/gleb/Code/CarND/CarND-Traffic-Sign-Classifier-Project/images/38.png" alt="sign5" title="Traffic sign 5"></p>
+<p>The images have similar quality to the images in the dataset so I would not expect any difficulties in classifying them. Image 4, the stop sign, can be a bit more difficult since it was captured form an angle.</p>
+<h3 id="performance-on-new-images">Performance on new images</h3>
+<p>All new images were classified correctly, achiving the <strong>accuracy of 100%</strong>.</p>
+<h3 id="model-certainty">Model certainty</h3>
+<p>The model was 100% certain about all the images except for the stop sign image where the softmax probability was 99.6%, probably due to the angle as mentioned before.</p>
+<h2 id="visualizing-the-neural-network">Visualizing the neural network</h2>
+<p>I visualized feature maps for the first and second convolution layers:</p>
+<p><img src="file:///home/gleb/Code/CarND/CarND-Traffic-Sign-Classifier-Project/conv1.png" alt="conv1" title="Traffic sign 4">
+<img src="file:///home/gleb/Code/CarND/CarND-Traffic-Sign-Classifier-Project/conv2.png" alt="conv2" title="Traffic sign 5"></p>
+<p>From the first convolution layer it is possible to see that some of the feature maps focus on foreground (feature map 19) vs background (feature map 2); edges (feature map 11) vs gradients (feature map 4). Interpretation of the feature maps from the second convolution layer is less clear.</p>
+
+    </body>
+    </html>
